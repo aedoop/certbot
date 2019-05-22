@@ -33,7 +33,6 @@ matrix:
     - python: "3.7"
       dist: xenial
       env: TOXENV=py37 CERTBOT_NO_PIN=1
-      <<: *extended-test-suite
 
 # container-based infrastructure
 sudo: false
