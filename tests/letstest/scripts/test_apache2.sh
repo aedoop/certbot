@@ -45,8 +45,18 @@ if [ $? -ne 0 ] ; then
     exit 1
 fi
 
-python tools/venv.py -e acme[dev] -e .[dev,docs] -e certbot-apache
-sudo venv/bin/certbot -v --debug --text --agree-dev-preview --agree-tos \
+# Some distros like Fedora may only have an executable named python3 installed.
+if command -v python; then
+    VENV_SCRIPT="tools/venv.py"
+    VENV_PATH="venv"
+else
+    VENV_PATH="venv3"
+    VENV_SCRIPT="tools/venv3.py"
+fi
+
+
+"$VENV_SCRIPT" -e acme[dev] -e .[dev,docs] -e certbot-apache
+sudo "$VENV_PATH/bin/certbot" -v --debug --text --agree-dev-preview --agree-tos \
                    --renew-by-default --redirect --register-unsafely-without-email \
                    --domain $PUBLIC_HOSTNAME --server $BOULDER_URL
 if [ $? -ne 0 ] ; then
@@ -55,7 +65,7 @@ fi
 
 if [ "$OS_TYPE" = "ubuntu" ] ; then
     export SERVER="$BOULDER_URL"
-    venv/bin/tox -e apacheconftest
+    "$VENV_PATH/bin/tox" -e apacheconftest
 else
     echo Not running hackish apache tests on $OS_TYPE
 fi
