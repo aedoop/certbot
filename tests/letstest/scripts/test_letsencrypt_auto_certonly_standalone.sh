@@ -18,6 +18,13 @@ export PATH="$LE_AUTO_DIR:$PATH"
 
 letsencrypt-auto --os-packages-only --debug --version
 
+# Some distros like Fedora may only have an executable named python3 installed.
+if command -v python; then
+    PYTHON_NAME="python"
+else
+    PYTHON_NAME="python3"
+fi
+
 # Create a venv-like layout at the old virtual environment path to test that a
 # symlink is properly created when letsencrypt-auto runs.
 HOME=${HOME:-~root}
@@ -32,7 +39,8 @@ letsencrypt-auto certonly --no-self-upgrade -v --standalone --debug \
                    --register-unsafely-without-email \
                    --domain $PUBLIC_HOSTNAME --server $BOULDER_URL
 
-if [ "$(tools/readlink.py ${XDG_DATA_HOME:-~/.local/share}/letsencrypt)" != "/opt/eff.org/certbot/venv" ]; then
+LINK_PATH=$("$PYTHON_NAME" tools/readlink.py ${XDG_DATA_HOME:-~/.local/share}/letsencrypt)
+if [ "$LINK_PATH" != "/opt/eff.org/certbot/venv" ]; then
     echo symlink from old venv path not properly created!
     exit 1
 fi
